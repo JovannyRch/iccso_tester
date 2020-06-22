@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Creator</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <script src="/main.js"></script>
+</head>
+
+<body>
+    <div id="app" class="container">
+        <div v-if="!juegoTerminado">
+            <div class="text-center row">
+                <div class="col s6">
+                    <h6>Puntos: <b>{{puntos }} <small style="font-size: 10px;">{{ this.puntosActuales }}</small></b>
+                    </h6>
+
+                    <small>{{ index +1 }}/{{ preguntas.length }}</small>
+                </div>
+                <div class="col s6">
+                    <h6>Errores: <b>{{fallas }}</b></h6>
+                </div>
+            </div>
+            <hr />
+            <div class="text-center">
+                <div class="row">
+                    <div class="col s1"></div>
+                    <div class="col s10">
+                        <img v-if="isImg(preguntas[index].pregunta)" :src="preguntas[index].pregunta" width="100%">
+                        <p v-else>
+                            {{ preguntas[index].pregunta }}
+                        </p>
+                    </div>
+                    <div class="col s1"></div>
+                </div>
+
+                <ul>
+                    <li v-for="r in preguntas[index].respuestas" @click="contestar(r, preguntas[index].respuestas)"
+                        style="margin-top: 5px;">
+                        <button class="btn grey lighten-4 grey-text text-darken-4"><small>{{r.cuerpo}}</small></button>
+                    </li>
+                </ul>
+            </div>
+
+
+        </div>
+        <div v-else class="container">
+            <h3>Juego terminado </h3><br>
+            <h2>Puntos obtenidos: <b>{{ puntos }}</b> /{{ preguntas.length }}</h2>
+        </div>
+        <script>
+
+
+
+            let app = new Vue({
+                el: "#app",
+                data: {
+                    saludo: "hola",
+                    preguntas: preguntas,
+                    index: 0,
+                    puntos: 0.0,
+                    puntosActuales: 0.0,
+                    juegoTerminado: false,
+                    fallas: 0,
+                },
+                created: function () {
+
+                    this.preguntas = this.shuffle(this.preguntas);
+                    this.preguntas[0].respuestas = this.shuffle(this.preguntas[0].respuestas);
+                },
+                methods: {
+                    contestar(r, respuestas) {
+
+                        if (!r.valor) {
+                            this.fallas += 1;
+                            if (this.fallas == 10) {
+                                this.juegoTerminado = true;
+                            }
+                            return;
+                        }
+
+
+                        let maxPuntaje = this.calcularValor(respuestas);
+
+                        this.puntosActuales += 1 / maxPuntaje;
+
+                        if (this.puntosActuales < 1.0) {
+                            return;
+                        }
+
+                        this.puntos += this.puntosActuales;
+                        this.puntosActuales = 0;
+
+                        if (this.index + 1 == this.preguntas.length) {
+                            this.juegoTerminado = true;
+                            this.index = 0;
+                        }
+                        else {
+                            this.index += 1;
+                            this.preguntas[this.index].respuestas = this.shuffle(this.preguntas[this.index].respuestas);
+                        }
+                    },
+                    calcularValor(respuestas) {
+                        let res = 0;
+                        for (const r of respuestas) {
+                            if (r.valor) {
+                                res += 1;
+                            }
+                        }
+                        return res;
+                    },
+                    isImg(p) {
+                        return p.toLowerCase().endsWith('.png')
+                    },
+                    shuffle(array) {
+                        var currentIndex = array.length, temporaryValue, randomIndex;
+
+                        // While there remain elements to shuffle...
+                        while (0 !== currentIndex) {
+
+                            // Pick a remaining element...
+                            randomIndex = Math.floor(Math.random() * currentIndex);
+                            currentIndex -= 1;
+
+                            // And swap it with the current element.
+                            temporaryValue = array[currentIndex];
+                            array[currentIndex] = array[randomIndex];
+                            array[randomIndex] = temporaryValue;
+                        }
+                        return array;
+                    }
+
+                }
+            });
+
+        </script>
+        <style>
+            .container {
+                height: 100vh;
+                width: 80vw;
+                margin: 0;
+                padding-left: 10%;
+                padding-right: 10%;
+                padding-top: 5%;
+                position: absolute;
+                top: 50%;
+                -ms-transform: translateY(-50%);
+                transform: translateY(-50%);
+
+            }
+
+            .pregunta {
+                width: 100%;
+                height: auto;
+            }
+        </style>
+
+</body>
+
+</html>
